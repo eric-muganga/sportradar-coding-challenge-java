@@ -1,0 +1,3 @@
+spring:
+  application:
+    name: sportradar-coding-challenge-java

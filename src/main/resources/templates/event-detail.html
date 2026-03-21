@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Event Detail')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container">
+
+    <div style="margin-bottom:1rem">
+        <a href="/events" class="btn btn-outline">← Back to Calendar</a>
+    </div>
+
+    <div class="detail-card">
+
+        <!-- Header — competition, matchup, score -->
+        <div class="detail-header">
+
+            <div class="competition">
+                <span th:text="${event.competitionName}"></span>
+                <span th:if="${event.stageName != null}">
+                    · <span th:text="${event.stageName}"></span>
+                </span>
+                <span th:if="${event.groupName != null}">
+                    · Group <span th:text="${event.groupName}"></span>
+                </span>
+            </div>
+
+            <div class="matchup"
+                 th:text="${event.homeTeamName} + ' vs ' + ${event.awayTeamName}">
+            </div>
+
+            <!-- Score for played events -->
+            <div class="result-score"
+                 th:if="${event.statusCode == 'played' and event.homeGoals != null}">
+                <span th:text="${event.homeGoals}"></span>
+                –
+                <span th:text="${event.awayGoals}"></span>
+            </div>
+
+            <!-- Winner for played events -->
+            <div th:if="${event.winnerTeamName != null}"
+                 style="color:#aaa;font-size:0.9rem;margin-top:0.5rem">
+                Winner: <span th:text="${event.winnerTeamName}"
+                              style="color:#fff;font-weight:600"></span>
+            </div>
+
+            <span class="status-badge"
+                  th:classappend="'status-' + ${event.statusCode}"
+                  th:text="${event.statusCode}"
+                  style="margin-top:1rem;display:inline-block">
+            </span>
+
+        </div>
+
+        <!-- Body — event details in two columns -->
+        <div class="detail-body">
+
+            <!-- Match info -->
+            <div class="detail-section">
+                <h3>Match Info</h3>
+                <p>Date:
+                    <span th:text="${#temporals.format(event.eventDate,
+                        'EEEE, dd MMMM yyyy')}"></span>
+                </p>
+                <p th:if="${event.eventTime != null and event.eventTime.hour != 0}">
+                    Time:
+                    <span th:text="${#temporals.format(event.eventTime, 'HH:mm')}
+                        + ' UTC'"></span>
+                </p>
+                <p th:if="${event.eventTime == null or event.eventTime.hour == 0}">
+                    Time: <span>TBD</span>
+                </p>
+                <p>Season: <span th:text="${event.season}"></span></p>
+                <p>Sport: <span th:text="${event.sportName}"></span></p>
+                <p th:if="${event.attendance != null}">
+                    Attendance:
+                    <span th:text="${#numbers.formatInteger(event.attendance, 1, 'COMMA')}">
+                    </span>
+                </p>
+            </div>
+
+            <!-- Teams -->
+            <div class="detail-section">
+                <h3>Teams</h3>
+                <p>Home:
+                    <span th:text="${event.homeTeamOfficialName != null}
+                        ? ${event.homeTeamOfficialName}
+                        : ${event.homeTeamName}">
+                    </span>
+                    <span th:if="${event.homeTeamCountry != null}"
+                          style="color:#888;font-weight:400">
+                        (<span th:text="${event.homeTeamCountry}"></span>)
+                    </span>
+                </p>
+                <p>Away:
+                    <span th:text="${event.awayTeamOfficialName != null}
+                        ? ${event.awayTeamOfficialName}
+                        : ${event.awayTeamName}">
+                    </span>
+                    <span th:if="${event.awayTeamCountry != null}"
+                          style="color:#888;font-weight:400">
+                        (<span th:text="${event.awayTeamCountry}"></span>)
+                    </span>
+                </p>
+            </div>
+
+            <!-- Venue -->
+            <div class="detail-section">
+                <h3>Venue</h3>
+                <p th:if="${event.venueName != null}">
+                    Stadium: <span th:text="${event.venueName}"></span>
+                </p>
+                <p th:if="${event.venueCity != null}">
+                    City: <span th:text="${event.venueCity}"></span>
+                </p>
+                <p th:if="${event.venueName == null}">
+                    Venue: <span style="color:#888;font-weight:400">Not specified</span>
+                </p>
+            </div>
+
+            <!-- Competition -->
+            <div class="detail-section">
+                <h3>Competition</h3>
+                <p th:if="${event.competitionName != null}">
+                    Competition: <span th:text="${event.competitionName}"></span>
+                </p>
+                <p th:if="${event.stageName != null}">
+                    Stage: <span th:text="${event.stageName}"></span>
+                </p>
+            </div>
+
+            <!-- Description -->
+            <div class="detail-section full-width"
+                 th:if="${event.description != null}"
+                 style="grid-column: 1 / -1">
+                <h3>Notes</h3>
+                <p th:text="${event.description}"></p>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

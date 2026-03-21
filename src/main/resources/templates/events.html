@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Calendar')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container">
+
+    <div class="page-title">Sports Calendar</div>
+
+    <!-- Success flash message from Post-Redirect-Get -->
+    <div th:if="${successMessage}" class="alert-success"
+         th:text="${successMessage}"></div>
+
+    <!-- Filter bar -->
+    <form method="get" action="/events" class="filter-bar">
+
+        <div class="filter-group">
+            <label for="sportId">Sport</label>
+            <select name="sportId" id="sportId"
+                    onchange="this.form.submit()">
+                <option value="">All Sports</option>
+                <option th:each="sport : ${sports}"
+                        th:value="${sport.id}"
+                        th:text="${sport.name}"
+                        th:selected="${sport.id == selectedSportId}">
+                </option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="statusCode">Status</label>
+            <select name="statusCode" id="statusCode"
+                    onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option th:each="status : ${statuses}"
+                        th:value="${status.code}"
+                        th:text="${status.description}"
+                        th:selected="${status.code == selectedStatusCode}">
+                </option>
+            </select>
+        </div>
+
+        <!-- Clear filters link — only shown when a filter is active -->
+        <div th:if="${selectedSportId != null or selectedStatusCode != null}"
+             class="filter-group">
+            <label>&nbsp;</label>
+            <a href="/events" class="btn btn-outline">Clear Filters</a>
+        </div>
+
+    </form>
+
+    <!-- Events list -->
+    <div class="events-grid" th:if="${not #lists.isEmpty(events)}">
+        <a th:each="event : ${events}"
+           th:href="@{/events/{id}(id=${event.id})}"
+           class="event-card">
+
+            <!-- Date column -->
+            <div class="event-date">
+                <div class="day"
+                     th:text="${#temporals.format(event.eventDate, 'dd')}">
+                </div>
+                <div class="month-year"
+                     th:text="${#temporals.format(event.eventDate, 'MMM yyyy')}">
+                </div>
+                <!-- Show time only if not midnight UTC (TBD) -->
+                <div class="time"
+                     th:if="${event.eventTime != null and event.eventTime.hour != 0}">
+                    <span th:text="${#temporals.format(event.eventTime, 'HH:mm')}"></span>
+                    <span style="font-size:0.75rem;color:#aaa">UTC</span>
+                </div>
+                <div class="time"
+                     th:if="${event.eventTime == null or event.eventTime.hour == 0}">
+                    TBD
+                </div>
+            </div>
+
+            <!-- Matchup column -->
+            <div class="event-matchup">
+                <div class="teams"
+                     th:text="${event.homeTeamName} + ' vs ' + ${event.awayTeamName}">
+                </div>
+                <div class="meta">
+                    <span th:text="${event.sportName}"></span>
+                    <span th:if="${event.competitionName != null}">
+                        · <span th:text="${event.competitionName}"></span>
+                    </span>
+                </div>
+                <span class="status-badge"
+                      th:classappend="'status-' + ${event.statusCode}"
+                      th:text="${event.statusCode}">
+                </span>
+            </div>
+
+            <!-- Score column — only for played events -->
+            <div class="event-score">
+                <div class="score"
+                     th:if="${event.statusCode == 'played' and event.homeGoals != null}">
+                    <span th:text="${event.homeGoals}"></span>
+                    –
+                    <span th:text="${event.awayGoals}"></span>
+                </div>
+                <div th:if="${event.statusCode != 'played'}"
+                     style="color:#aaa;font-size:0.85rem">
+                    –
+                </div>
+            </div>
+
+        </a>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" th:if="${#lists.isEmpty(events)}">
+        <p>No events found for the selected filters.</p>
+        <a href="/events" class="btn btn-primary">View All Events</a>
+    </div>
+
+</div>
+</body>
+</html>

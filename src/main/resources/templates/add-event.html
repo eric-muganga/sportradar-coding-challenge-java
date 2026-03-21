@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Add Event')}"></head>
+<body>
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container">
+
+    <div class="page-title">Add New Event</div>
+
+    <div class="form-card">
+        <form th:action="@{/events/new}"
+              th:object="${eventRequest}"
+              method="post">
+
+            <!-- Error message from service layer -->
+            <div th:if="${errorMessage}"
+                 style="background:#f8d7da;color:#721c24;border:1px solid #f5c6cb;
+                border-radius:6px;padding:0.8rem 1.2rem;margin-bottom:1rem;
+                font-size:0.95rem"
+                 th:text="${errorMessage}">
+            </div>
+
+            <div class="form-grid">
+
+                <!-- Season -->
+                <div class="form-group">
+                    <label for="season">Season *</label>
+                    <input type="number" id="season"
+                           th:field="*{season}"
+                           placeholder="e.g. 2024" min="1900" max="2100">
+                    <span class="field-error"
+                          th:if="${#fields.hasErrors('season')}"
+                          th:errors="*{season}">
+                    </span>
+                </div>
+
+                <!-- Status -->
+                <div class="form-group">
+                    <label for="statusCode">Status *</label>
+                    <select id="statusCode" th:field="*{statusCode}">
+                        <option value="">Select status...</option>
+                        <option th:each="status : ${statuses}"
+                                th:value="${status.code}"
+                                th:text="${status.description}">
+                        </option>
+                    </select>
+                    <span class="field-error"
+                          th:if="${#fields.hasErrors('statusCode')}"
+                          th:errors="*{statusCode}">
+                    </span>
+                </div>
+
+                <!-- Event date -->
+                <div class="form-group">
+                    <label for="eventDate">Date *</label>
+                    <input type="date" id="eventDate"
+                           th:field="*{eventDate}">
+                    <span class="field-error"
+                          th:if="${#fields.hasErrors('eventDate')}"
+                          th:errors="*{eventDate}">
+                    </span>
+                </div>
+
+                <!-- Event time -->
+                <div class="form-group">
+                    <label for="eventTime">Time (UTC)</label>
+                    <input type="time" id="eventTime"
+                           th:field="*{eventTime}"
+                           placeholder="HH:mm">
+                </div>
+
+                <!-- Sport -->
+                <div class="form-group">
+                    <label for="sportId">Sport *</label>
+                    <select id="sportId" th:field="*{sportId}">
+                        <option value="">Select sport...</option>
+                        <option th:each="sport : ${sports}"
+                                th:value="${sport.id}"
+                                th:text="${sport.name}">
+                        </option>
+                    </select>
+                    <span class="field-error"
+                          th:if="${#fields.hasErrors('sportId')}"
+                          th:errors="*{sportId}">
+                    </span>
+                </div>
+
+                <!-- Competition -->
+                <div class="form-group">
+                    <label for="competitionId">Competition *</label>
+                    <select id="competitionId" th:field="*{competitionId}"
+                            onchange="loadStages(this.value)">
+                        <option value="">Select competition...</option>
+                        <option th:each="comp : ${competitions}"
+                                th:value="${comp.id}"
+                                th:text="${comp.name}">
+                        </option>
+                    </select>
+                    <span class="field-error"
+                          th:if="${#fields.hasErrors('competitionId')}"
+                          th:errors="*{competitionId}">
+                    </span>
+                </div>
+
+                <!-- Home team -->
+                <div class="form-group">
+                    <label for="homeTeamId">Home Team</label>
+                    <select id="homeTeamId" th:field="*{homeTeamId}">
+                        <!--
+                            Home team is optional — TBD for knockout
+                            stage events where the bracket is unresolved
+                        -->
+                        <option value="">TBD</option>
+                        <option th:each="team : ${teams}"
+                                th:value="${team.id}"
+                                th:text="${team.name}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Away team -->
+                <div class="form-group">
+                    <label for="awayTeamId">Away Team *</label>
+                    <select id="awayTeamId" th:field="*{awayTeamId}">
+                        <option value="">Select team...</option>
+                        <option th:each="team : ${teams}"
+                                th:value="${team.id}"
+                                th:text="${team.name}">
+                        </option>
+                    </select>
+                    <span class="field-error"
+                          th:if="${#fields.hasErrors('awayTeamId')}"
+                          th:errors="*{awayTeamId}">
+                    </span>
+                </div>
+
+                <!-- Stage -->
+                <div class="form-group">
+                    <label for="stageId">Stage</label>
+                    <select id="stageId" th:field="*{stageId}">
+                        <!--
+                            Default option shown when no competition is selected.
+                            Options are replaced dynamically via loadStages() when
+                            the competition dropdown changes.
+                        -->
+                        <option value="">No stage / select competition first</option>
+                        <option th:each="stage : ${stages}"
+                                th:value="${stage.id}"
+                                th:text="${stage.name}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Group -->
+                <div class="form-group">
+                    <label for="groupName">Group</label>
+                    <input type="text" id="groupName"
+                           th:field="*{groupName}"
+                           placeholder="e.g. Group A">
+                </div>
+
+                <!-- Description -->
+                <div class="form-group full-width">
+                    <label for="description">Description</label>
+                    <textarea id="description"
+                              th:field="*{description}"
+                              rows="3"
+                              placeholder="Optional notes about the event">
+                    </textarea>
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    Add Event
+                </button>
+                <a href="/events" class="btn btn-outline">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+
+    </div>
+</div>
+
+<script>
+    /**
+     * Fetches stages for the selected competition and rebuilds
+     * the stage dropdown. Called when the competition select changes.
+     *
+     * Uses the /api/stages endpoint which returns JSON:
+     * [{ "id": "ROUND OF 16", "name": "Round of 16", "ordering": 4 }]
+     *
+     * Falls back to a single "no stages" option if the competition
+     * has no stages defined (e.g. league competitions without knockout rounds).
+     */
+    function loadStages(competitionId) {
+        const stageSelect = document.getElementById('stageId');
+
+        // Reset dropdown while loading
+        stageSelect.innerHTML = '<option value="">Loading...</option>';
+
+        if (!competitionId) {
+            stageSelect.innerHTML =
+                '<option value="">No stage / select competition first</option>';
+            return;
+        }
+
+        fetch('/api/events/stages?competitionId=' + encodeURIComponent(competitionId))
+            .then(response => response.json())
+            .then(stages => {
+                stageSelect.innerHTML =
+                    '<option value="">No stage (league match)</option>';
+
+                if (stages.length === 0) {
+                    stageSelect.innerHTML +=
+                        '<option value="" disabled>' +
+                        'No stages defined for this competition</option>';
+                    return;
+                }
+
+                stages.forEach(stage => {
+                    const option = document.createElement('option');
+                    option.value = stage.id;
+                    option.textContent = stage.name;
+                    stageSelect.appendChild(option);
+                });
+            })
+            .catch(() => {
+                stageSelect.innerHTML =
+                    '<option value="">Could not load stages</option>';
+            });
+    }
+
+    /**
+     * On page load, if a competition is already selected (e.g. after
+     * a validation failure re-renders the form with existing values),
+     * trigger stage loading immediately so the dropdown is populated.
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+        const competitionSelect = document.getElementById('competitionId');
+        if (competitionSelect.value) {
+            loadStages(competitionSelect.value);
+        }
+    });
+</script>
+</body>
+</html>
+

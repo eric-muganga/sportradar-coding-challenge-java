@@ -1,3 +1,45 @@
 spring:
   application:
     name: sportradar-coding-challenge-java
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sportsdb}
+    username: ${DB_USERNAME:sports_user}
+    password: ${DB_PASSWORD:sports_pass}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # flyway manages schema versioning. V1 creates all tables
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # fail fast if a migration checksum changes, prevents silent drift
+    validate-on-migrate: true
+
+  thymeleaf:
+    cache: false
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
+
+
+server:
+  port: 8080
+
+
+logging:
+  level:
+    root: WARN
+    com.eric.sportradar_coding_challenge_java: INFO
+    org.flywaydb: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN

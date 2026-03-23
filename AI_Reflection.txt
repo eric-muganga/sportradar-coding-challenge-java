@@ -1,0 +1,117 @@
+AI_Reflection.txt — Sportradar Coding Academy Submission
+=========================================================
+Candidate: Eric Muganga
+Date: March 2026
+
+---
+
+HOW I USED AI IN THIS PROJECT
+-------------------------------
+
+I used Claude (Anthropic) as a technical assistant during this project.
+I want to be transparent about exactly how and where it was used.
+
+1. DATABASE DESIGN (Task 1 — ERD)
+   I designed the ERD independently, working directly from the sample
+   JSON structure and the 3NF normalisation requirement in the task.
+   I identified all entities, their fields, and relationships myself —
+   including the decision to use a composite primary key on Stage
+   (id + _competition) because stage names like "FINAL" exist across
+   multiple competitions.
+
+   After completing the ERD I used Claude to review it for correctness.
+   It flagged one issue I had missed: the composite foreign key on Event
+   referencing Stage's composite PK required both _stage_id and
+   _stage_competition columns, not just _stage_id. I corrected this
+   before writing any SQL.
+
+2. SQL MIGRATIONS (Task 2)
+   I wrote the migration structure myself based on the ERD — table
+   definitions, data types, primary keys, foreign keys, and indexes
+   on the filter columns (event_date, _status, _sport, _competition).
+
+   For the seed data I asked Claude to help generate the INSERT
+   statements from the sample JSON, as manually writing parameterised
+   subquery inserts for 13 teams and 12 events was tedious and
+   error-prone. I reviewed every row against the original JSON before
+   committing. I also added the Premier League Matchweek 31 fixtures
+   for 21 March 2026 myself after checking live fixture sources.
+
+3. JAVA / SPRING BOOT IMPLEMENTATION (Task 3 — Backend)
+   I made all the architecture decisions: layered structure (controller,
+   service, repository, mapper, DTO), JOIN FETCH queries to prevent
+   N+1, @Transactional(readOnly = true) on read methods, DTO/entity
+   separation, and Flyway with ddl-auto: validate.
+
+   I used Claude as a pair-programming assistant to write the
+   boilerplate code faster — entity classes, repository interfaces,
+   mapper methods, and service logic. I wrote the first draft of the
+   service layer myself and used Claude to review and fill gaps. Every
+   file was read, understood, and adjusted by me before committing.
+   When something was suggested that I did not fully understand, such
+   as the @IdClass pattern for the composite Stage PK — I asked for
+   an explanation before using it.
+
+   I debugged all runtime errors myself first, using Claude only when
+   I had already identified the problem area and needed confirmation.
+   For example: the wrong @Id import (Spring Data vs JPA), the
+   VALUES list length mismatch in seed data, and the blank stageId FK
+   violation — I diagnosed all three before asking for the fix.
+
+4. THYMELEAF TEMPLATES (Task 3 — Frontend)
+   I wrote the initial template structure and described the UI
+   requirements. Claude helped generate the HTML and CSS layout. I
+   made specific adjustments myself: the time display logic (treating
+   00:00:00 UTC as TBD rather than displaying midnight), the dynamic
+   stage dropdown using fetch() when competition changes, the
+   Post-Redirect-Get pattern on form submission, and the status badge
+   colour coding.
+
+5. TESTS
+   I wrote the unit test structure and identified the key scenarios to
+   cover — the three filtering paths, the nullable home team case, and
+   the blank stageId FK fix. Claude helped with the Mockito and
+   Testcontainers boilerplate. I debugged the JavaTimeModule
+   serialization error independently before applying the fix.
+
+6. DOCUMENTATION
+   I wrote the README and technical decisions section myself. The
+   decisions documented — Flyway over ddl-auto, DTO separation,
+   JOIN FETCH, nullable home team, TBD time handling, composite Stage
+   PK — all reflect choices I made and can explain and defend.
+
+---
+
+WHAT I LEARNED THROUGH THIS PROJECT
+-------------------------------------
+
+- Composite primary and foreign keys in PostgreSQL and JPA (@IdClass)
+- The N+1 problem and how JOIN FETCH prevents it at the query level
+- Thymeleaf fragment includes and the th:replace pattern
+- Post-Redirect-Get pattern to prevent duplicate form submissions
+- Flyway migration ordering, checksum validation, and schema history
+- Environment variable configuration with Spring Boot fallback syntax
+- The practical difference between ddl-auto: validate and update
+- @Transactional(readOnly = true) — what it does at the Hibernate
+  and database level, not just that the annotation exists
+
+---
+
+MY ASSESSMENT OF AI-ASSISTED DEVELOPMENT
+-----------------------------------------
+
+AI assistance accelerated implementation significantly, particularly
+for boilerplate — entity classes, repository interfaces, and INSERT
+statements that follow a repetitive pattern. This freed up time to
+focus on the parts that required real design thinking: the schema
+normalisation, the N+1 prevention strategy, the stage FK architecture,
+and the edge cases like nullable home teams and TBD kickoff times.
+
+The key discipline was staying in the driver's seat. I did not accept
+generated code passively — I read every file, questioned anything I
+did not understand, and debugged problems myself before asking for
+help. The result is a codebase I can walk through line by line and
+explain every decision in.
+
+That distinction — between using AI to move faster and using AI as a
+crutch — is what I tried to maintain throughout.
